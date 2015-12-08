@@ -44,3 +44,5 @@ gradle.properties
 
 # log files
 logs
+
+grader_output

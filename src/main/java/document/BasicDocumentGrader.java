@@ -1,16 +1,22 @@
 package document;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.PrintWriter;
 
 public class BasicDocumentGrader {
+
   public static void main(String[] args) {
     try {
       System.out.println("Sentences, words, and syllables:");
-      BufferedReader br = new BufferedReader(new FileReader("test_cases/mod1TestCases.txt"));
+      File graderDir = new File(System.getProperty("user.dir") + "/grader_output");
+      graderDir.mkdir();
+
+      BufferedReader br = new BufferedReader(new FileReader(getTestResource("mod1TestCases.txt")));
       String line;
-      PrintWriter out = new PrintWriter("grader_output/module1.part1.out", "utf-8");
+      PrintWriter out = new PrintWriter(getSafeOutputFilePath("grader_output/module1.part1.out"), "utf-8");
       while ((line = br.readLine()) != null) {
         BasicDocument doc = new BasicDocument(line);
         String result = doc.getNumSentences() + " " + doc.getNumWords() + " " + doc.getNumSyllables() + " ";
@@ -22,8 +28,8 @@ public class BasicDocumentGrader {
       System.out.println("\nFlesch scores:");
       br.close();
 
-      br = new BufferedReader(new FileReader("test_cases/mod1TestCases.txt"));
-      out = new PrintWriter("grader_output/module1.part2.out", "utf-8");
+      br = new BufferedReader(new FileReader(getTestResource("mod1TestCases.txt")));
+      out = new PrintWriter(getSafeOutputFilePath("grader_output/module1.part2.out"), "utf-8");
       while ((line = br.readLine()) != null) {
         BasicDocument doc = new BasicDocument(line);
         String result = doc.getFleschScore() + " ";
@@ -37,5 +43,17 @@ public class BasicDocumentGrader {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  private static String getTestResource(String fileName) {
+    return System.getProperty("user.dir") + "/src/test/resources/" + fileName;
+  }
+
+  private static String getSafeOutputFilePath(String desiredFilePath) throws IOException {
+    File file = new File(System.getProperty("user.dir") + "/" + desiredFilePath);
+    if (!file.exists()) {
+      file.createNewFile();
+    }
+    return file.getAbsolutePath();
   }
 }
