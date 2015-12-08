@@ -33,6 +33,19 @@ public class MainApp extends Application {
     launch(args);
   }
 
+  private static URL getResourceLocation(String resourceName) {
+    URL resource;
+    try {
+      resource = new File(System.getProperty("user.dir") + "/src/main/resources/view/" + resourceName).toURI().toURL();
+      System.out.println(resource.toString());
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
+    return resource;
+  }
+
+  // SHOW NEW STAGE METHODS
+
   // called at start of application
   @Override
   public void start(Stage primaryStage) {
@@ -60,8 +73,6 @@ public class MainApp extends Application {
 
     showTextProApp();
   }
-
-  // SHOW NEW STAGE METHODS
 
   /**
    * Shows the main TextApplication scene
@@ -269,16 +280,5 @@ public class MainApp extends Application {
 
   public Stage getStage() {
     return this.primaryStage;
-  }
-
-  private static URL getResourceLocation(String resourceName) {
-    URL resource;
-    try {
-      resource = new File(System.getProperty("user.dir") + "/src/main/resources/view/" + resourceName).toURI().toURL();
-      System.out.println(resource.toString());
-    } catch (MalformedURLException e) {
-      throw new RuntimeException(e);
-    }
-    return resource;
   }
 }
