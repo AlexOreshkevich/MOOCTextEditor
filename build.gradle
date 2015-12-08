@@ -1,0 +1,141 @@
+group 'org.coursera.mooctexteditor'
+version '0.1-SNAPSHOT'
+
+apply plugin: 'java'
+compileJava {
+    targetCompatibility = "1.8"
+    sourceCompatibility = "1.8"
+}
+
+apply plugin: 'idea'
+
+// configure static code style plugins
+apply plugin: 'checkstyle'
+checkstyle {
+    //configFile = new File("etc/config/dev.xml");
+    ignoreFailures = false
+    toolVersion = "6.12.1"
+}
+
+// Performs quality checks on your project's Java source files using FindBugs
+apply plugin: 'findbugs'
+findbugs {
+    ignoreFailures = true
+}
+
+/*
+ * Performs quality checks on your project's source files using JDepend.
+ *
+ * JDepend traverses Java class file directories and generates design quality metrics for each Java package.
+ * JDepend allows you to automatically measure the quality of a design in terms of its extensibility, reusability,
+ * and maintainability to manage package dependencies effectively.
+ */
+apply plugin: 'jdepend'
+
+// Performs quality checks on your project's Java source files using PMD
+apply plugin: 'pmd'
+pmd {
+    ignoreFailures = true
+}
+
+
+apply plugin: "jacoco" // test coverage plugin
+jacocoTestReport {
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports after running tests."
+    additionalSourceDirs = files(sourceSets.main.allJava.srcDirs)
+}
+test.finalizedBy jacocoTestReport // Execute test coverage report after tests
+
+allprojects {
+
+    // extended properties
+    ext {
+        log4jVersion = "2.4.1"
+        junitVersion = "4.12"
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+    maven { url 'http://oss.sonatype.org/content/repositories/snapshots' }
+}
+
+dependencies {
+
+    // rich text editor dependency
+    compile 'org.fxmisc.richtext:richtextfx:0.6.10'
+
+    // logging settings
+    compile("org.apache.logging.log4j:log4j-api:$log4jVersion")
+    compile("org.apache.logging.log4j:log4j-core:$log4jVersion")
+
+    // testing engines (unit, mock aso.)
+    testCompile("junit:junit:$junitVersion")
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'MOOCTextEditor',
+                'Implementation-Version': version
+    }
+}
+
+// custom tasks for creating source/javadoc jars
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+// add source jar tasks as artifacts
+artifacts {
+    archives sourcesJar
+}
+
+tasks.withType(FindBugs) {
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
+tasks.withType(JDepend) {
+    reports {
+        xml.enabled false
+        text.enabled true
+    }
+}
+
+task checkstyleHtml << {
+
+    String xmlReportFilePath = checkstyleMain.reports.xml.destination.parent;
+    File xmlReportFile = new File(xmlReportFilePath);
+    if (!xmlReportFile.exists()) {
+        return;
+    }
+
+    ant.xslt(in: checkstyleMain.reports.xml.destination,
+            style: file('config/checkstyle/styles.xsl'),
+            out: new File(xmlReportFilePath, 'main.html'))
+}
+
+checkstyleMain.finalizedBy checkstyleHtml
+
+check << {
+
+    // Make sure the output dir exists to prevent a ReportException
+    File outDir = new File('build/reports/pmd/');
+    outDir.mkdirs();
+
+    ant.taskdef(name: 'cpd', classname: 'net.sourceforge.pmd.cpd.CPDTask',
+            classpath: configurations.pmd.asPath)
+
+    ant.cpd(minimumTokenCount: '100', format: 'text',
+            outputFile: new File(outDir, 'cpd.txt')) {
+        fileset(dir: "src/main/java") {
+            include(name: '**/*.java')
+        }
+    }
+}
