@@ -33,17 +33,6 @@ public class MainApp extends Application {
     launch(args);
   }
 
-  private static URL getResourceLocation(String resourceName) {
-    URL resource;
-    try {
-      resource = new File(System.getProperty("user.dir") + "/src/main/resources/view/" + resourceName).toURI().toURL();
-      System.out.println(resource.toString());
-    } catch (MalformedURLException e) {
-      throw new RuntimeException(e);
-    }
-    return resource;
-  }
-
   // SHOW NEW STAGE METHODS
 
   // called at start of application
@@ -280,5 +269,15 @@ public class MainApp extends Application {
 
   public Stage getStage() {
     return this.primaryStage;
+  }
+
+  private URL getResourceLocation(String resourceName) {
+    URL resource;
+    try {
+      resource = new File(System.getProperty("user.dir") + "/src/main/resources/view/" + resourceName).toURI().toURL();
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
+    return resource;
   }
 }
